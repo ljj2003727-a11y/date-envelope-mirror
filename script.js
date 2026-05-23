@@ -299,81 +299,26 @@ document.addEventListener("mousemove", (e) => {
   });
 });
 
-/* ===== Background music (Web Audio API) ===== */
-let audioCtx = null;
-let musicPlaying = false;
-let musicTimer = null;
-let musicGainNode = null;
-
-const melodyNotes = [
-  523.25, 587.33, 659.25, 783.99, 880.0, 783.99, 659.25, 587.33,
-  523.25, 659.25, 783.99, 880.0, 783.99, 659.25, 587.33, 523.25,
-];
-
-function createMusicBox() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  musicGainNode = audioCtx.createGain();
-  musicGainNode.gain.value = 0.06;
-  musicGainNode.connect(audioCtx.destination);
-
-  let noteIndex = 0;
-  const interval = 820;
-
-  function playNote() {
-    if (!musicPlaying || !audioCtx) return;
-
-    const freq = melodyNotes[noteIndex % melodyNotes.length];
-    const now = audioCtx.currentTime;
-
-    const osc = audioCtx.createOscillator();
-    const noteGain = audioCtx.createGain();
-
-    osc.type = "sine";
-    osc.frequency.value = freq;
-
-    noteGain.gain.setValueAtTime(0, now);
-    noteGain.gain.linearRampToValueAtTime(0.09, now + 0.06);
-    noteGain.gain.linearRampToValueAtTime(0.04, now + 0.35);
-    noteGain.gain.linearRampToValueAtTime(0, now + 0.78);
-
-    osc.connect(noteGain);
-    noteGain.connect(musicGainNode);
-
-    osc.start(now);
-    osc.stop(now + 0.8);
-
-    noteIndex++;
-  }
-
-  playNote();
-  musicTimer = setInterval(playNote, interval);
-}
-
+/* ===== Background music ===== */
 function toggleMusic() {
   const btn = document.getElementById("musicToggle");
-  if (!btn) return;
+  const audio = document.getElementById("bgMusic");
+  if (!btn || !audio) return;
 
-  if (!musicPlaying) {
-    if (audioCtx && audioCtx.state === "suspended") {
-      audioCtx.resume();
-    }
-    musicPlaying = true;
-    btn.classList.add("is-playing");
-    btn.setAttribute("aria-label", "暂停音乐");
-    btn.textContent = "♪";
-    createMusicBox();
+  if (audio.paused) {
+    audio.volume = 0.35;
+    audio.play().then(() => {
+      btn.classList.add("is-playing");
+      btn.setAttribute("aria-label", "暂停音乐");
+      btn.textContent = "♪";
+    }).catch(() => {
+      // Audio not available
+    });
   } else {
-    musicPlaying = false;
+    audio.pause();
     btn.classList.remove("is-playing");
     btn.setAttribute("aria-label", "播放背景音乐");
     btn.textContent = "♫";
-    if (musicTimer) {
-      clearInterval(musicTimer);
-      musicTimer = null;
-    }
   }
 }
 
