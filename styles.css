@@ -861,6 +861,51 @@ h2 {
   box-shadow: 0 0 16px rgba(207, 95, 107, 0.18);
 }
 
+/* ===== Sad overlay ===== */
+.sad-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(70, 90, 110, 0.12);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.sad-overlay.is-active {
+  opacity: 1;
+  transition: opacity 120ms ease;
+}
+
+/* ===== Sad response text ===== */
+.response.is-sad {
+  color: #6b8a9e;
+}
+
+/* ===== Letter golden glow (accept) ===== */
+@keyframes letterGlow {
+  0% { box-shadow: 0 28px 70px var(--strong-shadow), inset 0 0 0 8px rgba(255,255,255,0.34), 0 0 0 0 rgba(226,180,75,0); }
+  40% { box-shadow: 0 28px 90px rgba(226,180,75,0.45), 0 0 70px rgba(226,180,75,0.25), inset 0 0 0 8px rgba(255,255,255,0.5), 0 0 40px 10px rgba(226,180,75,0.18); }
+  100% { box-shadow: 0 28px 70px var(--strong-shadow), inset 0 0 0 8px rgba(255,255,255,0.34), 0 0 0 0 rgba(226,180,75,0); }
+}
+
+.letter.is-glowing {
+  animation: letterGlow 2s ease-out;
+}
+
+/* ===== Sad rain drop (DOM) ===== */
+.sad-drop {
+  position: fixed;
+  pointer-events: none;
+  z-index: 998;
+  animation: sadDropFall 1.6s ease-in forwards;
+}
+
+@keyframes sadDropFall {
+  0% { opacity: 0.7; transform: translate(0, 0) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--sdx), var(--sdy)) rotate(var(--sdr)); }
+}
+
 /* ===== Screen reader only ===== */
 .sr-only {
   position: absolute;

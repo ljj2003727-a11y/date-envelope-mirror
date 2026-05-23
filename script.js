@@ -13,6 +13,7 @@ let maybeCount = 0;
 let petals = [];
 let confetti = [];
 let fireflies = [];
+let rainParticles = [];
 
 if ("scrollRestoration" in window.history) {
   window.history.scrollRestoration = "manual";
@@ -40,6 +41,7 @@ function openLetter() {
 /* ===== Accept invitation ===== */
 function acceptInvitation() {
   stage.classList.add("is-accepted");
+  responseText.classList.remove("is-sad");
   responseText.textContent =
     `太好了，${recipientName}。那这一页，就先替我们记住第一件心动的小事。`;
   acceptDate.textContent = "已经赴约";
@@ -47,12 +49,19 @@ function acceptInvitation() {
   maybeDate.style.transform = "translate(0, 0)";
   launchConfetti();
   launchHeartBurst();
+  letter.classList.add("is-glowing");
+  setTimeout(() => letter.classList.remove("is-glowing"), 2200);
 }
 
 /* ===== Tease / maybe ===== */
 function teaseMaybe() {
+  responseText.classList.add("is-sad");
   responseText.textContent = maybeReplies[maybeCount % maybeReplies.length];
   maybeCount += 1;
+
+  launchSadRain();
+  flashSadOverlay();
+  launchSadDrops();
 
   if (window.innerWidth > 720 && !reducedMotion) {
     const x = Math.round((Math.random() - 0.5) * 70);
@@ -163,6 +172,20 @@ function drawConfettiPiece(piece) {
   ctx.restore();
 }
 
+function drawRainDrop(item) {
+  ctx.save();
+  ctx.translate(item.x, item.y);
+  ctx.rotate(-0.3);
+  const gradient = ctx.createLinearGradient(0, 0, 0, item.size);
+  gradient.addColorStop(0, `rgba(120,155,180,${item.opacity})`);
+  gradient.addColorStop(1, `rgba(100,140,170,${item.opacity * 0.3})`);
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 1.5, item.size, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 /* ===== Animation loop ===== */
 let windGust = 0;
 let windTimer = 0;
@@ -215,6 +238,18 @@ function animate() {
     }
   });
 
+  rainParticles = rainParticles.filter((r) => r.life > 0);
+  rainParticles.forEach((r) => {
+    drawRainDrop(r);
+    if (!reducedMotion) {
+      r.y += r.speed;
+      r.x += r.drift;
+      r.life -= 1;
+    } else {
+      r.life = 0;
+    }
+  });
+
   window.requestAnimationFrame(animate);
 }
 
@@ -262,6 +297,52 @@ function launchHeartBurst() {
     document.body.appendChild(heart);
 
     setTimeout(() => heart.remove(), 4500);
+  }
+}
+
+/* ===== Sad rain (canvas teardrops) ===== */
+function launchSadRain() {
+  const count = 35 + maybeCount * 8;
+  for (let i = 0; i < Math.min(count, 100); i++) {
+    rainParticles.push({
+      x: Math.random() * window.innerWidth,
+      y: -20 - Math.random() * 160,
+      speed: 2.5 + Math.random() * 4.5,
+      drift: -0.8 + Math.random() * 0.4,
+      size: 9 + Math.random() * 15,
+      opacity: 0.35 + Math.random() * 0.45,
+      life: 100 + Math.floor(Math.random() * 70),
+    });
+  }
+}
+
+/* ===== Sad overlay flash ===== */
+function flashSadOverlay() {
+  const overlay = document.getElementById("sadOverlay");
+  if (!overlay) return;
+  overlay.classList.add("is-active");
+  setTimeout(() => overlay.classList.remove("is-active"), 700);
+}
+
+/* ===== Sad drops (DOM teardrops) ===== */
+function launchSadDrops() {
+  const drops = ["💧", "🥺", "💔", "😢"];
+  const count = 6 + maybeCount * 2;
+  const originX = window.innerWidth / 2;
+  const originY = Math.min(window.innerHeight * 0.45, 350);
+
+  for (let i = 0; i < Math.min(count, 18); i++) {
+    const drop = document.createElement("span");
+    drop.textContent = drops[Math.floor(Math.random() * drops.length)];
+    drop.className = "sad-drop";
+    drop.style.left = `${originX + (Math.random() - 0.5) * 200}px`;
+    drop.style.top = `${originY}px`;
+    drop.style.setProperty("--sdx", `${(Math.random() - 0.5) * 120}px`);
+    drop.style.setProperty("--sdy", `${80 + Math.random() * 200}px`);
+    drop.style.setProperty("--sdr", `${(Math.random() - 0.5) * 60}deg`);
+    drop.style.fontSize = `${14 + Math.random() * 18}px`;
+    document.body.appendChild(drop);
+    setTimeout(() => drop.remove(), 1800);
   }
 }
 
